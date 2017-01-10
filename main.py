@@ -1,4 +1,4 @@
-import struct
+import struct, math
 
 HEADER_BLOCK = b'\x47\x49\x46\x38\x39\x61' #GIF89a
 
@@ -8,17 +8,24 @@ class Gipher(object):
         self.height = height
         self.background_color = background
         self.frames = []
-        self.colors = set()
+        self.colors = [
+            (255, 255, 255),
+            (255, 0, 0),
+            (0, 0, 255),
+            (0, 0, 0)
+        ]
 
     def line(self, start, end, fill=(0, 0, 0)):
-        self.colors.add(fill)
+        #self.colors.append(fill)
+        pass
 
     def rectangle(self, start, end, fill=(0, 0, 0), stroke=None):
         if not stroke:
             stroke = fill
 
-        self.colors.add(fill)
-        self.colors.add(stroke)
+        ##self.colors.append(fill)
+        #self.colors.append(stroke)
+        pass
 
     def get_header_block(self):
         header_block = b'\x47\x49\x46\x38\x39\x61'
@@ -31,7 +38,7 @@ class Gipher(object):
         global_color_table_flag = 1
         color_resolution = 1
         sort_flag = 0
-        size_of_global_color_table = 1
+        size_of_global_color_table = self.get_global_color_table_size()
 
         packed_field = 0
         packed_field = (packed_field << 1) | global_color_table_flag
@@ -49,15 +56,12 @@ class Gipher(object):
 
         return bt
 
-    def get_global_color_table(self):
-        colors = [
-            (255, 255, 255),
-            (255, 0, 0),
-            (0, 0, 255),
-            (0, 0, 0)
-        ]
+    def get_global_color_table_size(self):
+        color_table_length = len(self.colors)
+        return math.ceil(math.log(color_table_length, 2)) - 1
 
-        color_bytes = bytearray(list(sum(colors, ())))
+    def get_global_color_table(self):
+        color_bytes = bytearray(list(sum(self.colors, ())))
         return color_bytes
 
     def get_graphics_control_extension(self):
